@@ -27,7 +27,7 @@ async def read_item(request: Request):
     return templates.TemplateResponse("index.html", {"request": request, "newDocs": newDocs})
 
 
-@note.post("/",)
+@note.post("/add_notes",)
 async def add_notes(request: Request):
     form = await request.form()
     form_dict = dict(form)
