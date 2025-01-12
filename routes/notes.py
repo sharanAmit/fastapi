@@ -27,13 +27,39 @@ async def read_item(request: Request):
     return templates.TemplateResponse("index.html", {"request": request, "newDocs": newDocs})
 
 
-@note.post("/add_notes",)
+from fastapi import Request, HTTPException
+from datetime import datetime
+
+
+@note.post("/add_notes")
 async def add_notes(request: Request):
     form = await request.form()
     form_dict = dict(form)
-    form_dict["important"]= True if form_dict.get("important") == "on" else False
+
+    # Convert "important" checkbox to a boolean value
+    form_dict["important"] = True if form_dict.get("important") == "on" else False
+
+    # Mandatory field validation
+    missing_fields = []
+    if not form_dict.get("title"):
+        missing_fields.append("title")
+    if not form_dict.get("description"):
+        missing_fields.append("description")
+    if not form_dict.get("important"):  # Validate the presence of the 'important' field
+        missing_fields.append("important")
+
+    # If any mandatory fields are missing, raise an error
+    if missing_fields:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Missing or empty mandatory fields: {', '.join(missing_fields)}"
+        )
+
+    # Add timestamps
     form_dict["created_at"] = datetime.now()
     form_dict["updated_at"] = datetime.now()
-    print(f"form dict ===> {form_dict}")
+
+    # Insert into the database
     note = connection.notes.notes.insert_one(form_dict)
-    return {"Success": True}
+
+    return {"Success": True, "Message": "Note added successfully!"}
