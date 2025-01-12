@@ -1,5 +1,5 @@
 from typing import Union
-
+from datetime import datetime
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -27,9 +27,13 @@ async def read_item(request: Request):
     return templates.TemplateResponse("index.html", {"request": request, "newDocs": newDocs})
 
 
-@note.post("/add_notes",)
+@note.post("/",)
 async def add_notes(request: Request):
     form = await request.form()
     form_dict = dict(form)
+    form_dict["important"]= True if form_dict.get("important") == "on" else False
+    form_dict["created_at"] = datetime.now()
+    form_dict["updated_at"] = datetime.now()
+    print(f"form dict ===> {form_dict}")
     note = connection.notes.notes.insert_one(form_dict)
     return {"Success": True}
