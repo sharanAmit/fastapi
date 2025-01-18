@@ -1,5 +1,7 @@
-from pydantic import BaseModel
+from xmlrpc.client import DateTime
 
+from pydantic import BaseModel
+from datetime import datetime
 
 class Notes(BaseModel):
     id: int
@@ -10,12 +12,16 @@ class Notes(BaseModel):
     deleted_at: str
     important: bool
 
-class NotesCreate(BaseModel):
-    id: int
-    title: str
-    description: str
 
-class NotesUpdate(BaseModel):
+
+class UserModel(BaseModel):
     id: int
-    title: str
-    description: str
+    user_name: str
+    user_phone: int
+    user_address: str
+    device_id: str
+    device_type: str
+    user_mail: str
+    user_password: str
+    created_at: datetime.now()
+    updated_at: datetime.now()
