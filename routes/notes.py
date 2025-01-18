@@ -8,7 +8,7 @@ from config.db import connection
 # from models.notes_model import Notes, NotesCreate, NotesUpdate
 # from schemas.notes_schema import noteEntity, notesEntity
 from fastapi import Request, HTTPException, Depends
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from config.tokenize import decode_access_token, create_access_token, oauth2_scheme, get_current_user
 
 note = APIRouter()
@@ -85,14 +85,18 @@ async def user_registration(request: Request):
 @note.post("/add_notes")
 async def add_notes(
     request: Request,
-    current_user: str = Depends(get_current_user)  # Use token validation function
 ):
     form = await request.form()
+    header =  request.headers
+    token = header["authorization"]
+    print(token)
     form_dict = dict(form)
-    print("apple")
     form_dict["important"] = True if form_dict.get("important") == "on" else False
-
-    # Mandatory field validation
+    decryptToken = decode_access_token(token)
+    # tokenTime = datetime.fromtimestamp(decryptToken["exp"])
+    # if tokenTime  >= datetime.now(UTC):
+    #     print(decryptToken["id"])
+        # Mandatory field validation
     missing_fields = []
     if not form_dict.get("title"):
         missing_fields.append("title")
@@ -106,15 +110,9 @@ async def add_notes(
             status_code=400,
             detail=f"Missing or empty mandatory fields: {', '.join(missing_fields)}"
         )
-
-    # Add timestamps
     form_dict["created_at"] = datetime.now()
     form_dict["updated_at"] = datetime.now()
-
-    # Associate the note with the authenticated user
-    form_dict["username"] = current_user  # Attach the user info to the note
-
-    # Insert into the database
+    form_dict["userId"] = decryptToken["id"]
     note = connection.notes.notes.insert_one(form_dict)
 
     return {"Success": True, "Message": "Note added successfully!"}
